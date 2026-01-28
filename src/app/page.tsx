@@ -73,17 +73,17 @@ export default function Home() {
     localStorage.setItem("icolove-ranking-data", JSON.stringify(data));
   }, [title, ranking, isMounted]);
 
-  // ドラッグ&ドロップ用センサー
+  // ドラッグ&ドロップ用センサー（スマホスクロール対応）
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 10,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 5,
+        delay: 500, // 長押し500msでドラッグ開始
+        tolerance: 10, // 10px以上動くとキャンセル（スクロール優先）
       },
     }),
     useSensor(KeyboardSensor, {
