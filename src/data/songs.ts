@@ -1,11 +1,11 @@
-// =LOVE 全楽曲データ（1st〜19thシングル）
+// =LOVE 全楽曲データ（1st〜19thシングル + 1stアルバム）
 
 export interface Song {
   id: string;
   title: string;
   singleNumber: number;
   singleTitle: string;
-  type: "title" | "coupling";
+  type: "title" | "coupling" | "album";
   releaseDate: string;
 }
 
@@ -441,7 +441,7 @@ export const songs: Song[] = [
   },
   {
     id: "15-2",
-    title: "狂想カタストロフィ",
+    title: "ドライブ デート 都内",
     singleNumber: 15,
     singleTitle: "ラストノートしか知らない",
     type: "coupling",
@@ -449,7 +449,7 @@ export const songs: Song[] = [
   },
   {
     id: "15-3",
-    title: "どこまでがホントの恋?",
+    title: "狂想カタストロフィ",
     singleNumber: 15,
     singleTitle: "ラストノートしか知らない",
     type: "coupling",
@@ -457,7 +457,7 @@ export const songs: Song[] = [
   },
   {
     id: "15-4",
-    title: "誰にもバレずに",
+    title: "どこが好きか言って",
     singleNumber: 15,
     singleTitle: "ラストノートしか知らない",
     type: "coupling",
@@ -475,6 +475,14 @@ export const songs: Song[] = [
   },
   {
     id: "16-2",
+    title: "誰にもバレずに",
+    singleNumber: 16,
+    singleTitle: "呪って呪って",
+    type: "coupling",
+    releaseDate: "2024-03-06",
+  },
+  {
+    id: "16-3",
     title: "君の第3ボタン",
     singleNumber: 16,
     singleTitle: "呪って呪って",
@@ -545,11 +553,53 @@ export const songs: Song[] = [
   },
   {
     id: "19-2",
+    title: "Queens",
+    singleNumber: 19,
+    singleTitle: "ラブソングに襲われる",
+    type: "coupling",
+    releaseDate: "2025-10-08",
+  },
+  {
+    id: "19-3",
     title: "木漏れ日メゾフォルテ",
     singleNumber: 19,
     singleTitle: "ラブソングに襲われる",
     type: "coupling",
     releaseDate: "2025-10-08",
+  },
+
+  // 1st Album「全部、内緒。」(2022.03.30) - アルバム新曲のみ
+  {
+    id: "album1-1",
+    title: "Overture",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2022-03-30",
+  },
+  {
+    id: "album1-2",
+    title: "桜の咲く音がした",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2022-03-30",
+  },
+  {
+    id: "album1-3",
+    title: "Oh! Darling",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2022-03-30",
+  },
+  {
+    id: "album1-4",
+    title: "お姉さんじゃダメですか？",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2022-03-30",
   },
 ];
 
@@ -578,4 +628,9 @@ export function getSongsBySingle(singleNumber: number): Song[] {
 // 表題曲のみ取得
 export function getTitleSongs(): Song[] {
   return songs.filter((song) => song.type === "title");
+}
+
+// アルバム曲を取得
+export function getAlbumSongs(): Song[] {
+  return songs.filter((song) => song.type === "album");
 }
