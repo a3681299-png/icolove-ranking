@@ -568,14 +568,14 @@ export const songs: Song[] = [
     releaseDate: "2025-10-08",
   },
 
-  // 1st Album「全部、内緒。」(2022.03.30) - アルバム新曲のみ
+  // 1st Album「全部、内緒。」(2021.05.12) - アルバム新曲
   {
     id: "album1-1",
     title: "Overture",
     singleNumber: 0,
     singleTitle: "全部、内緒。",
     type: "album",
-    releaseDate: "2022-03-30",
+    releaseDate: "2021-05-12",
   },
   {
     id: "album1-2",
@@ -583,7 +583,7 @@ export const songs: Song[] = [
     singleNumber: 0,
     singleTitle: "全部、内緒。",
     type: "album",
-    releaseDate: "2022-03-30",
+    releaseDate: "2021-05-12",
   },
   {
     id: "album1-3",
@@ -591,15 +591,63 @@ export const songs: Song[] = [
     singleNumber: 0,
     singleTitle: "全部、内緒。",
     type: "album",
-    releaseDate: "2022-03-30",
+    releaseDate: "2021-05-12",
   },
   {
     id: "album1-4",
+    title: "セノビーインラブ",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-5",
+    title: "Cinema",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-6",
+    title: "現役アイドルちゅ～",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-7",
+    title: "拝啓 貴方様",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-8",
+    title: "24/7",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-9",
     title: "お姉さんじゃダメですか？",
     singleNumber: 0,
     singleTitle: "全部、内緒。",
     type: "album",
-    releaseDate: "2022-03-30",
+    releaseDate: "2021-05-12",
+  },
+  {
+    id: "album1-10",
+    title: "866",
+    singleNumber: 0,
+    singleTitle: "全部、内緒。",
+    type: "album",
+    releaseDate: "2021-05-12",
   },
 ];
 
