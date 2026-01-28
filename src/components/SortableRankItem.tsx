@@ -3,7 +3,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Song } from "@/data/songs";
+import { Song, getCoverUrl } from "@/data/songs";
+import Image from "next/image";
 
 interface RankingItem {
   id: string;
@@ -76,6 +77,10 @@ export default function SortableRankItem({
     return "";
   };
 
+  // TOP3かつ曲が選択されている場合のみジャケット表示
+  const showCover = item.rank <= 3 && item.song;
+  const coverUrl = item.song ? getCoverUrl(item.song) : undefined;
+
   return (
     <motion.div
       ref={setNodeRef}
@@ -120,6 +125,33 @@ export default function SortableRankItem({
       >
         {getRankDisplay(item.rank)}
       </motion.div>
+
+      {/* ジャケット画像（TOP3のみ） */}
+      {showCover && coverUrl && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 6,
+            overflow: "hidden",
+            flexShrink: 0,
+            boxShadow: "0 2px 8px rgba(255, 105, 180, 0.3)",
+            border: "2px solid rgba(255, 182, 193, 0.5)",
+          }}
+        >
+          <Image
+            src={coverUrl}
+            alt={item.song?.singleTitle || "ジャケット"}
+            width={40}
+            height={40}
+            style={{ objectFit: "cover", width: "100%", height: "100%" }}
+            unoptimized
+          />
+        </motion.div>
+      )}
 
       {/* 曲名 */}
       <motion.div
