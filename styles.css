@@ -1,0 +1,459 @@
+/* ========================================
+   =LOVE 楽曲ランキング - ゆめかわスタイル
+   ======================================== */
+
+/* リセット & 基本設定 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif;
+  background: linear-gradient(
+    135deg,
+    #ffeef8 0%,
+    #fff0f5 25%,
+    #f8e8ff 50%,
+    #fff5f8 75%,
+    #ffe8f0 100%
+  );
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.container {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ========================================
+   編集パネル
+   ======================================== */
+.edit-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(255, 182, 193, 0.3);
+  border: 2px dashed #ffb6c1;
+}
+
+.edit-panel h2 {
+  color: #ff69b4;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+
+.hint {
+  color: #d8a0b0;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+.download-btn {
+  background: linear-gradient(135deg, #ff9cc2 0%, #ffb3d9 50%, #ffc4e1 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.5);
+}
+
+.download-btn:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 1.2rem;
+}
+
+/* ========================================
+   ランキングカード本体
+   ======================================== */
+.ranking-card {
+  background: linear-gradient(
+    180deg,
+    #fff5f8 0%,
+    #ffe8f5 20%,
+    #fff0f5 40%,
+    #f8e8ff 60%,
+    #fff5f8 80%,
+    #ffe0f0 100%
+  );
+  border-radius: 30px;
+  padding: 40px 25px 30px;
+  position: relative;
+  box-shadow:
+    0 10px 40px rgba(255, 182, 193, 0.4),
+    inset 0 0 60px rgba(255, 255, 255, 0.5);
+  border: 3px solid rgba(255, 182, 193, 0.5);
+  overflow: hidden;
+}
+
+/* ========================================
+   装飾要素
+   ======================================== */
+.decoration {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ribbon-top-left {
+  top: 15px;
+  left: 20px;
+  font-size: 2rem;
+  transform: rotate(-15deg);
+}
+.ribbon-top-right {
+  top: 15px;
+  right: 20px;
+  font-size: 2rem;
+  transform: rotate(15deg);
+}
+.heart-1 {
+  top: 80px;
+  right: 15px;
+  animation: float 3s ease-in-out infinite;
+}
+.heart-2 {
+  bottom: 150px;
+  left: 10px;
+  animation: float 2.5s ease-in-out infinite 0.5s;
+}
+.heart-3 {
+  top: 200px;
+  left: 15px;
+  animation: float 3.5s ease-in-out infinite 1s;
+}
+.star-1 {
+  top: 120px;
+  left: 25px;
+  animation: twinkle 2s ease-in-out infinite;
+}
+.star-2 {
+  bottom: 250px;
+  right: 20px;
+  animation: twinkle 2.5s ease-in-out infinite 0.3s;
+}
+.star-3 {
+  bottom: 80px;
+  right: 15px;
+  animation: twinkle 3s ease-in-out infinite 0.7s;
+}
+.bunny-1 {
+  bottom: 120px;
+  left: 15px;
+  font-size: 1.8rem;
+}
+.note-1 {
+  top: 160px;
+  right: 10px;
+  animation: bounce 2s ease-in-out infinite;
+}
+.note-2 {
+  bottom: 200px;
+  left: 20px;
+  animation: bounce 2.5s ease-in-out infinite 0.5s;
+}
+.flower-1 {
+  top: 60px;
+  left: 50px;
+}
+.flower-2 {
+  bottom: 50px;
+  right: 50px;
+}
+.candy-1 {
+  bottom: 30px;
+  left: 40px;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(10deg);
+  }
+}
+
+/* ========================================
+   ヘッダー
+   ======================================== */
+.card-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 2;
+}
+
+.title-decoration {
+  color: #ff69b4;
+  font-size: 1.5rem;
+}
+
+.main-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #ff69b4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 10px;
+  outline: none;
+  min-width: 200px;
+  transition: background 0.3s ease;
+}
+
+.main-title:focus {
+  background: rgba(255, 182, 193, 0.2);
+  -webkit-text-fill-color: #ff69b4;
+}
+
+.main-title:empty::before {
+  content: attr(data-placeholder);
+  color: #ffb6c1;
+  -webkit-text-fill-color: #ffb6c1;
+}
+
+.subtitle {
+  text-align: center;
+  color: #d8a0b0;
+  font-size: 0.9rem;
+  margin-bottom: 25px;
+  font-style: italic;
+  position: relative;
+  z-index: 2;
+}
+
+/* ========================================
+   ランキングリスト
+   ======================================== */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 240, 245, 0.9) 100%
+  );
+  padding: 12px 15px;
+  border-radius: 15px;
+  border: 2px solid rgba(255, 182, 193, 0.4);
+  box-shadow: 0 2px 10px rgba(255, 182, 193, 0.2);
+  transition: all 0.3s ease;
+}
+
+.rank-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.3);
+}
+
+/* TOP3 特別スタイル */
+.rank-1 {
+  background: linear-gradient(135deg, #fff9c4 0%, #ffe082 50%, #fff59d 100%);
+  border-color: #ffd54f;
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+}
+
+.rank-2 {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #f5f5f5 100%);
+  border-color: #bdbdbd;
+}
+
+.rank-3 {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 50%, #ffe0b2 100%);
+  border-color: #ffb74d;
+}
+
+.rank-number {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ff69b4;
+  min-width: 45px;
+  text-align: center;
+}
+
+.rank-1 .rank-number {
+  color: #f57c00;
+  font-size: 1.1rem;
+}
+.rank-2 .rank-number {
+  color: #757575;
+}
+.rank-3 .rank-number {
+  color: #e65100;
+}
+
+.song-name {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #5d4e60;
+  padding: 5px 10px;
+  border-radius: 8px;
+  outline: none;
+  min-height: 1.5em;
+  transition: background 0.3s ease;
+}
+
+.song-name:focus {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.song-name:empty::before {
+  content: attr(data-placeholder);
+  color: #d8a0b0;
+  font-style: italic;
+}
+
+/* ========================================
+   フッター
+   ======================================== */
+.card-footer {
+  margin-top: 25px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.footer-deco {
+  color: #ff69b4;
+  font-size: 1rem;
+}
+
+.footer-text {
+  color: #d8a0b0;
+  font-size: 0.85rem;
+  padding: 3px 10px;
+  border-radius: 8px;
+  outline: none;
+}
+
+.footer-text:focus {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.footer-text:empty::before {
+  content: attr(data-placeholder);
+  color: #e8c0d0;
+  font-style: italic;
+}
+
+/* ========================================
+   レスポンシブ対応
+   ======================================== */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .ranking-card {
+    padding: 35px 15px 25px;
+    border-radius: 25px;
+  }
+
+  .main-title {
+    font-size: 1.2rem;
+  }
+
+  .rank-item {
+    padding: 10px 12px;
+  }
+
+  .rank-number {
+    min-width: 40px;
+    font-size: 0.9rem;
+  }
+
+  .song-name {
+    font-size: 0.9rem;
+  }
+
+  .decoration {
+    font-size: 1.2rem;
+  }
+
+  .ribbon-top-left,
+  .ribbon-top-right {
+    font-size: 1.5rem;
+  }
+}
+
+/* ========================================
+   印刷/保存時のスタイル調整
+   ======================================== */
+@media print {
+  .edit-panel {
+    display: none;
+  }
+
+  body {
+    padding: 0;
+  }
+}
