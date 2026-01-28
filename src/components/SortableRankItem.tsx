@@ -17,6 +17,26 @@ interface SortableRankItemProps {
   onClear: () => void;
 }
 
+// ぷにぷにスプリング設定
+const springConfig = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 15,
+};
+
+// ホバー時のぷにぷにエフェクト
+const hoverAnimation = {
+  scale: 1.02,
+  y: -2,
+  transition: springConfig,
+};
+
+// タップ時のぷにっとエフェクト
+const tapAnimation = {
+  scale: 0.97,
+  transition: { duration: 0.1 },
+};
+
 export default function SortableRankItem({
   item,
   onSelect,
@@ -60,54 +80,104 @@ export default function SortableRankItem({
     <motion.div
       ref={setNodeRef}
       style={style}
-      initial={{ opacity: 0, x: -20 }}
+      initial={{ opacity: 0, x: -30, scale: 0.8 }}
       animate={{
-        opacity: isDragging ? 0.8 : 1,
+        opacity: isDragging ? 0.9 : 1,
         x: 0,
-        scale: isDragging ? 1.02 : 1,
+        scale: isDragging ? 1.05 : 1,
+        rotate: isDragging ? 2 : 0,
+        boxShadow: isDragging
+          ? "0 15px 30px rgba(255, 105, 180, 0.4)"
+          : "0 2px 8px rgba(255, 182, 193, 0.3)",
       }}
-      transition={{ duration: 0.2 }}
+      whileHover={!isDragging ? hoverAnimation : undefined}
+      whileTap={!isDragging ? tapAnimation : undefined}
+      transition={{
+        ...springConfig,
+        opacity: { duration: 0.2 },
+      }}
       className={`rank-item ${getRankClass(item.rank)} ${isDragging ? "dragging" : ""}`}
       {...attributes}
       {...listeners}
     >
-      {/* 順位 */}
-      <div className="rank-number">{getRankDisplay(item.rank)}</div>
+      {/* 順位 - ぷるぷるアニメーション */}
+      <motion.div
+        className="rank-number"
+        animate={
+          item.rank <= 3
+            ? {
+                scale: [1, 1.1, 1],
+                rotate: [0, -5, 5, 0],
+              }
+            : {}
+        }
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: item.rank * 0.2,
+        }}
+      >
+        {getRankDisplay(item.rank)}
+      </motion.div>
 
       {/* 曲名 */}
-      <div
-        className="flex-1 min-w-0"
+      <motion.div
+        className="flex-1 min-w-0 cursor-pointer"
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
         }}
+        whileHover={{ x: 3 }}
+        whileTap={{ scale: 0.98 }}
       >
         {item.song ? (
-          <div className="truncate">
+          <motion.div
+            className="truncate"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <span className="text-gray-700 font-medium">{item.song.title}</span>
-            <span className="text-pink-300 text-xs ml-2">
-              {item.song.singleNumber}th
-            </span>
-          </div>
+            <motion.span
+              className="text-pink-300 text-xs ml-2"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {item.song.singleNumber === 0
+                ? "Album"
+                : `${item.song.singleNumber}th`}
+            </motion.span>
+          </motion.div>
         ) : (
-          <span className="text-pink-300 italic text-sm">
-            タップして曲を選択...
-          </span>
+          <motion.span
+            className="text-pink-300 italic text-sm"
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            タップして曲を選択... ✨
+          </motion.span>
         )}
-      </div>
+      </motion.div>
 
-      {/* クリアボタン */}
+      {/* クリアボタン - ぷにっとエフェクト */}
       {item.song && (
-        <button
+        <motion.button
           onClick={(e) => {
             e.stopPropagation();
             onClear();
           }}
           className="text-pink-300 hover:text-pink-500 transition-colors p-1"
           aria-label="クリア"
+          whileHover={{
+            scale: 1.3,
+            rotate: 90,
+            transition: { type: "spring", stiffness: 400 },
+          }}
+          whileTap={{ scale: 0.8 }}
         >
           ✕
-        </button>
+        </motion.button>
       )}
     </motion.div>
   );

@@ -271,14 +271,20 @@ export default function Home() {
           >
             曲をタップして選択、ドラッグで順位変更
           </p>
-          <button
+          <motion.button
             onClick={handleDownload}
             disabled={isDownloading}
             className="btn-primary"
             style={{ width: "100%", justifyContent: "center" }}
+            whileHover={{
+              scale: 1.03,
+              boxShadow: "0 8px 25px rgba(255, 105, 180, 0.5)",
+            }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
           >
-            {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存</>}
-          </button>
+            {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存 ✨</>}
+          </motion.button>
         </motion.div>
 
         {/* ランキングカード */}
