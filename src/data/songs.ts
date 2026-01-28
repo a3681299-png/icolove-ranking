@@ -1,4 +1,5 @@
 // =LOVE 全楽曲データ（1st〜19thシングル + 1stアルバム）
+import coverData from "./covers.json";
 
 export interface Song {
   id: string;
@@ -10,34 +11,12 @@ export interface Song {
   coverUrl?: string; // ジャケット画像URL
 }
 
-// シングルごとのジャケット画像URL（Type-A基準）
-export const singleCovers: Record<number, string> = {
-  1: "https://m.media-amazon.com/images/I/81ywCfsz1LL._AC_SX679_.jpg",
-  2: "https://m.media-amazon.com/images/I/81P5a0g9EhL._AC_SX679_.jpg",
-  3: "https://m.media-amazon.com/images/I/81YqI9n4yRL._AC_SX679_.jpg",
-  4: "https://m.media-amazon.com/images/I/81v2KMCY1eL._AC_SX679_.jpg",
-  5: "https://m.media-amazon.com/images/I/81xj8YM9VBL._AC_SX679_.jpg",
-  6: "https://m.media-amazon.com/images/I/81MGIZ5akJL._AC_SX679_.jpg",
-  7: "https://m.media-amazon.com/images/I/81nQZcCxIKL._AC_SX679_.jpg",
-  8: "https://m.media-amazon.com/images/I/71QW3iYhDhL._AC_SX679_.jpg",
-  9: "https://m.media-amazon.com/images/I/71Qz6rMSxCL._AC_SX679_.jpg",
-  10: "https://m.media-amazon.com/images/I/71P0CYK7J5L._AC_SX679_.jpg",
-  11: "https://m.media-amazon.com/images/I/71jfLIkuDLL._AC_SX679_.jpg",
-  12: "https://m.media-amazon.com/images/I/71HKD6Cm6QL._AC_SX679_.jpg",
-  13: "https://m.media-amazon.com/images/I/71N9hJLT6lL._AC_SX679_.jpg",
-  14: "https://m.media-amazon.com/images/I/71kGAV3HLUL._AC_SX679_.jpg",
-  15: "https://m.media-amazon.com/images/I/71gR98YzD3L._AC_SX679_.jpg",
-  16: "https://m.media-amazon.com/images/I/71Xy4FKJkaL._AC_SX679_.jpg",
-  17: "https://m.media-amazon.com/images/I/71pDy0N6YQL._AC_SX679_.jpg",
-  18: "https://m.media-amazon.com/images/I/71Xy4FKJkaL._AC_SX679_.jpg",
-  19: "https://m.media-amazon.com/images/I/71Xy4FKJkaL._AC_SX679_.jpg",
-};
-
-// アルバムのジャケット画像URL
-export const albumCovers: Record<string, string> = {
-  "全部、内緒。":
-    "https://m.media-amazon.com/images/I/71aYnNz6mSL._AC_SX679_.jpg",
-};
+// iTunes APIから取得したジャケット画像URL
+export const singleCovers: Record<number, string> = coverData.singles as Record<
+  number,
+  string
+>;
+export const albumCovers: Record<string, string> = coverData.albums;
 
 // ジャケット画像URLを取得
 export function getCoverUrl(song: Song): string | undefined {
