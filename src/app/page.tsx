@@ -46,7 +46,6 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [oshiPhoto, setOshiPhoto] = useState<string | null>(null);
-  const [maskedOshiPhoto, setMaskedOshiPhoto] = useState<string | null>(null);
   const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 }); // -50 ~ 50 の範囲
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,8 +57,8 @@ export default function Home() {
     // モバイル判定
     const checkMobile = () => setIsMobile(window.innerWidth <= 480);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // ローカルストレージから復元
@@ -85,56 +84,8 @@ export default function Home() {
     localStorage.setItem("icolove-ranking-data", JSON.stringify(data));
   }, [title, ranking, oshiPhoto, isMounted]);
 
-  // 推し写真を丸く切り抜く（オフセット対応）
-  const applyCircleMask = useCallback(async (photoDataUrl: string, offsetX: number, offsetY: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject('キャンバスの取得に失敗');
-        return;
-      }
-
-      const photoImg = new Image();
-      photoImg.crossOrigin = 'anonymous';
-
-      photoImg.onload = () => {
-        const size = 150; // 円のサイズ（大きめに）
-        canvas.width = size;
-        canvas.height = size;
-
-        // 円形クリッピングパスを作成
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-
-        // 推し写真を描画（オフセット適用）
-        const srcSize = Math.min(photoImg.width, photoImg.height);
-        // オフセットをソース画像の座標に変換（-50~50 → 実際のピクセル）
-        const offsetScale = srcSize * 0.005; // 1%あたりのピクセル
-        const sx = (photoImg.width - srcSize) / 2 + (offsetX * offsetScale);
-        const sy = (photoImg.height - srcSize) / 2 + (offsetY * offsetScale);
-        ctx.drawImage(photoImg, sx, sy, srcSize, srcSize, 0, 0, size, size);
-
-        resolve(canvas.toDataURL('image/png'));
-      };
-
-      photoImg.onerror = () => reject('写真の読み込みに失敗');
-      photoImg.src = photoDataUrl;
-    });
-  }, []);
-
-  // 推し写真またはオフセットが変更されたらマスク処理を実行
-  useEffect(() => {
-    if (!oshiPhoto) {
-      setMaskedOshiPhoto(null);
-      return;
-    }
-    applyCircleMask(oshiPhoto, cropOffset.x, cropOffset.y)
-      .then(setMaskedOshiPhoto)
-      .catch(console.error);
-  }, [oshiPhoto, cropOffset, applyCircleMask]);
+  // CSSベースの3層構造なのでCanvas合成は不要
+  // oshiPhotoをそのまま使用する
 
   // 推し写真をアップロード
   const handleOshiPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,9 +103,8 @@ export default function Home() {
   // 推し写真をクリア
   const clearOshiPhoto = () => {
     setOshiPhoto(null);
-    setMaskedOshiPhoto(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -414,12 +364,12 @@ export default function Home() {
                   cursor: "pointer",
                   background: "white",
                   textAlign: "center",
-                  color: maskedOshiPhoto ? "#ff69b4" : "#d8a0b0",
+                  color: oshiPhoto ? "#ff69b4" : "#d8a0b0",
                 }}
               >
-                {maskedOshiPhoto ? "✓ アップロード済み" : "写真を選択..."}
+                {oshiPhoto ? "✓ アップロード済み" : "写真を選択..."}
               </label>
-              {maskedOshiPhoto && (
+              {oshiPhoto && (
                 <button
                   onClick={clearOshiPhoto}
                   style={{
@@ -437,38 +387,120 @@ export default function Home() {
               )}
             </div>
             {/* プレビューとクロップ調整 */}
-            {maskedOshiPhoto && (
+            {oshiPhoto && (
               <div style={{ marginTop: "10px" }}>
                 <div style={{ textAlign: "center", marginBottom: "10px" }}>
-                  <img
-                    src={maskedOshiPhoto}
-                    alt="推しプレビュー"
-                    style={{ width: "100px", height: "100px", objectFit: "contain" }}
-                  />
+                  {/* 2層構造のプレビュー */}
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100px",
+                      height: "100px",
+                      margin: "0 auto",
+                    }}
+                  >
+                    {/* 下層: ユーザーの写真（円形に切り抜き） */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
+                        width: "32%",
+                        height: "32%",
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img
+                        src={oshiPhoto}
+                        alt="推しプレビュー"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                    {/* 上層: シーリングスタンプ（images2.png） */}
+                    <img
+                      src="/assets/images2.png"
+                      alt="シーリングスタンプ"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
+                  </div>
                 </div>
                 {/* クロップ位置調整 */}
-                <div style={{ fontSize: "0.75rem", color: "#d8a0b0", marginBottom: "6px" }}>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "#d8a0b0",
+                    marginBottom: "6px",
+                  }}
+                >
                   📍 切り抜き位置調整
                 </div>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "0.75rem", color: "#d8a0b0", minWidth: "30px" }}>左右</span>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center",
+                    marginBottom: "6px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#d8a0b0",
+                      minWidth: "30px",
+                    }}
+                  >
+                    左右
+                  </span>
                   <input
                     type="range"
                     min="-50"
                     max="50"
                     value={cropOffset.x}
-                    onChange={(e) => setCropOffset(prev => ({ ...prev, x: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setCropOffset((prev) => ({
+                        ...prev,
+                        x: Number(e.target.value),
+                      }))
+                    }
                     style={{ flex: 1, accentColor: "#ff69b4" }}
                   />
                 </div>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.75rem", color: "#d8a0b0", minWidth: "30px" }}>上下</span>
+                <div
+                  style={{ display: "flex", gap: "10px", alignItems: "center" }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#d8a0b0",
+                      minWidth: "30px",
+                    }}
+                  >
+                    上下
+                  </span>
                   <input
                     type="range"
                     min="-50"
                     max="50"
                     value={cropOffset.y}
-                    onChange={(e) => setCropOffset(prev => ({ ...prev, y: Number(e.target.value) }))}
+                    onChange={(e) =>
+                      setCropOffset((prev) => ({
+                        ...prev,
+                        y: Number(e.target.value),
+                      }))
+                    }
                     style={{ flex: 1, accentColor: "#ff69b4" }}
                   />
                 </div>
@@ -520,124 +552,56 @@ export default function Home() {
           {/* 装飾 */}
           <Decorations />
 
-          {/* 推し写真（CSSシーリングスタンプ風 - 3層構造） */}
-          {maskedOshiPhoto && (
+          {/* 推し写真（シーリングスタンプフレーム） */}
+          {oshiPhoto && (
             <motion.div
               initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
               animate={{ opacity: 1, scale: 1, rotate: -10 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
               style={{
                 position: "absolute",
-                top: "-10px",
-                right: "-10px",
+                top: isMobile ? "-60px" : "-18%",
+                right: isMobile ? "-60px" : "-18%",
                 zIndex: 20,
-                width: "120px",
-                height: "120px",
-                filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))",
+                width: isMobile ? "200px" : "50%",
+                height: isMobile ? "200px" : "50%",
+                filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35))",
               }}
             >
-              {/* 下層: 蝋の土台（不規則な形） */}
-              <div
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  background: "radial-gradient(ellipse at 30% 30%, #a02030 0%, #7a1520 40%, #5a1015 100%)",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  boxShadow: `
-                    inset 0 -3px 6px rgba(0, 0, 0, 0.3),
-                    inset 0 3px 6px rgba(255, 200, 200, 0.2),
-                    0 2px 4px rgba(0, 0, 0, 0.2)
-                  `,
-                }}
-              />
-              {/* 蝋の垂れ（ドリップ効果） */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-8px",
-                  right: "25%",
-                  width: "15px",
-                  height: "20px",
-                  background: "radial-gradient(ellipse at 50% 20%, #8a1a25 0%, #5a1015 100%)",
-                  borderRadius: "40% 40% 50% 50%",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-5px",
-                  left: "20%",
-                  width: "10px",
-                  height: "12px",
-                  background: "radial-gradient(ellipse at 50% 20%, #8a1a25 0%, #5a1015 100%)",
-                  borderRadius: "40% 40% 50% 50%",
-                }}
-              />
-
-              {/* 中層: 推しの写真（セピア＋乗算で馴染ませる） */}
+              {/* 下層: ユーザーの写真（円形に切り抜き） */}
               <div
                 style={{
                   position: "absolute",
                   top: "50%",
                   left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "75px",
-                  height: "75px",
+                  transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
+                  width: "40%",
+                  height: "40%",
                   borderRadius: "50%",
                   overflow: "hidden",
-                  boxShadow: "inset 0 0 10px rgba(0, 0, 0, 0.4)",
                 }}
               >
                 <img
-                  src={maskedOshiPhoto}
-                  alt="推し"
+                  src={oshiPhoto}
+                  alt="推し写真"
                   style={{
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    filter: "sepia(30%) contrast(1.1) brightness(0.95)",
-                    mixBlendMode: "multiply",
-                  }}
-                />
-                {/* 写真の上に赤みを追加 */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    background: "rgba(120, 30, 40, 0.25)",
-                    mixBlendMode: "overlay",
                   }}
                 />
               </div>
-
-              {/* 上層: 質感のハイライト（ツヤ感） */}
-              <div
+              {/* 上層: シーリングスタンプ（images2.png） */}
+              <img
+                src="/assets/images2.png"
+                alt="シーリングスタンプ"
                 style={{
                   position: "absolute",
+                  top: 0,
+                  left: 0,
                   width: "100%",
                   height: "100%",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  background: `
-                    radial-gradient(ellipse at 25% 25%, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
-                    radial-gradient(ellipse at 75% 75%, rgba(0, 0, 0, 0.15) 0%, transparent 30%)
-                  `,
-                  pointerEvents: "none",
-                }}
-              />
-              {/* 縁のハイライト */}
-              <div
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  border: "1px solid rgba(255, 200, 200, 0.15)",
-                  boxShadow: "inset 0 1px 2px rgba(255, 255, 255, 0.1)",
-                  pointerEvents: "none",
+                  objectFit: "contain",
                 }}
               />
             </motion.div>
@@ -749,128 +713,61 @@ export default function Home() {
           className="card"
           style={{
             position: "relative",
-            background: "linear-gradient(180deg, #fff5f8 0%, #ffe8f5 20%, #fff0f5 40%, #f8e8ff 60%, #fff5f8 80%, #ffe0f0 100%)",
+            background:
+              "linear-gradient(180deg, #fff5f8 0%, #ffe8f5 20%, #fff0f5 40%, #f8e8ff 60%, #fff5f8 80%, #ffe0f0 100%)",
           }}
         >
           {/* 装飾 */}
           <Decorations />
 
-          {/* 推し写真（CSSシーリングスタンプ風 - 3層構造） */}
-          {maskedOshiPhoto && (
+          {/* 推し写真（CSSベース3層構造シーリングスタンプ） */}
+          {oshiPhoto && (
             <div
               style={{
                 position: "absolute",
-                top: "-15px",
-                right: "-15px",
+                top: "-25px",
+                right: "-25px",
                 zIndex: 20,
-                width: "150px",
-                height: "150px",
+                width: "200px",
+                height: "200px",
                 transform: "rotate(-10deg)",
-                filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4))",
+                filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35))",
               }}
             >
-              {/* 下層: 蝋の土台（不規則な形） */}
-              <div
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  background: "radial-gradient(ellipse at 30% 30%, #a02030 0%, #7a1520 40%, #5a1015 100%)",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  boxShadow: `
-                    inset 0 -3px 6px rgba(0, 0, 0, 0.3),
-                    inset 0 3px 6px rgba(255, 200, 200, 0.2),
-                    0 2px 4px rgba(0, 0, 0, 0.2)
-                  `,
-                }}
-              />
-              {/* 蝋の垂れ（ドリップ効果） */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-10px",
-                  right: "25%",
-                  width: "18px",
-                  height: "25px",
-                  background: "radial-gradient(ellipse at 50% 20%, #8a1a25 0%, #5a1015 100%)",
-                  borderRadius: "40% 40% 50% 50%",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-6px",
-                  left: "20%",
-                  width: "12px",
-                  height: "15px",
-                  background: "radial-gradient(ellipse at 50% 20%, #8a1a25 0%, #5a1015 100%)",
-                  borderRadius: "40% 40% 50% 50%",
-                }}
-              />
-
-              {/* 中層: 推しの写真（セピア＋乗算で馴染ませる） */}
+              {/* 下層: ユーザーの写真（円形に切り抜き） */}
               <div
                 style={{
                   position: "absolute",
                   top: "50%",
                   left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "95px",
-                  height: "95px",
+                  transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
+                  width: "32%",
+                  height: "32%",
                   borderRadius: "50%",
                   overflow: "hidden",
-                  boxShadow: "inset 0 0 10px rgba(0, 0, 0, 0.4)",
                 }}
               >
                 <img
-                  src={maskedOshiPhoto}
-                  alt="推し"
+                  src={oshiPhoto}
+                  alt="推し写真"
                   style={{
                     width: "100%",
                     height: "100%",
                     objectFit: "cover",
-                    filter: "sepia(30%) contrast(1.1) brightness(0.95)",
-                    mixBlendMode: "multiply",
-                  }}
-                />
-                {/* 写真の上に赤みを追加 */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    background: "rgba(120, 30, 40, 0.25)",
-                    mixBlendMode: "overlay",
                   }}
                 />
               </div>
-
-              {/* 上層: 質感のハイライト（ツヤ感） */}
-              <div
+              {/* 上層: シーリングスタンプ（images2.png） */}
+              <img
+                src="/assets/images2.png"
+                alt="シーリングスタンプ"
                 style={{
                   position: "absolute",
+                  top: 0,
+                  left: 0,
                   width: "100%",
                   height: "100%",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  background: `
-                    radial-gradient(ellipse at 25% 25%, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
-                    radial-gradient(ellipse at 75% 75%, rgba(0, 0, 0, 0.15) 0%, transparent 30%)
-                  `,
-                  pointerEvents: "none",
-                }}
-              />
-              {/* 縁のハイライト */}
-              <div
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "47% 53% 45% 55% / 52% 48% 52% 48%",
-                  border: "1px solid rgba(255, 200, 200, 0.15)",
-                  boxShadow: "inset 0 1px 2px rgba(255, 255, 255, 0.1)",
-                  pointerEvents: "none",
+                  objectFit: "contain",
                 }}
               />
             </div>
@@ -899,7 +796,8 @@ export default function Home() {
                 style={{
                   fontSize: "1.4rem",
                   fontWeight: "bold",
-                  background: "linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #ff69b4 100%)",
+                  background:
+                    "linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #ff69b4 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -930,23 +828,37 @@ export default function Home() {
               zIndex: 10,
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                flex: 1,
+              }}
+            >
               {leftColumn.map((item) => (
                 <SortableRankItem
                   key={`hidden-${item.id}`}
                   item={item}
-                  onSelect={() => { }}
-                  onClear={() => { }}
+                  onSelect={() => {}}
+                  onClear={() => {}}
                 />
               ))}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                flex: 1,
+              }}
+            >
               {rightColumn.map((item) => (
                 <SortableRankItem
                   key={`hidden-${item.id}`}
                   item={item}
-                  onSelect={() => { }}
-                  onClear={() => { }}
+                  onSelect={() => {}}
+                  onClear={() => {}}
                 />
               ))}
             </div>
