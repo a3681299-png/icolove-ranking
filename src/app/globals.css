@@ -227,16 +227,39 @@ body {
    ======================================== */
 @media (max-width: 480px) {
   .card {
-    padding: 30px 15px 25px;
-    border-radius: 25px;
+    padding: 20px 8px 20px;
+    border-radius: 20px;
   }
   
   .rank-item {
-    padding: 12px 14px;
+    padding: 8px 6px;
+    gap: 4px;
+    border-radius: 10px;
+    flex-wrap: nowrap;
+    min-width: 0;
   }
   
   .rank-number {
-    min-width: 40px;
-    font-size: 0.9rem;
+    min-width: 28px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  .rank-1 .rank-number,
+  .rank-2 .rank-number,
+  .rank-3 .rank-number {
+    font-size: 0.8rem;
+  }
+  
+  /* 曲名テキストをコンパクトに */
+  .rank-item .song-title {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+  
+  /* TOP3のジャケット画像を小さく */
+  .rank-item .cover-image {
+    width: 28px;
+    height: 28px;
   }
 }

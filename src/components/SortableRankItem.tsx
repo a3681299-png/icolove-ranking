@@ -129,6 +129,7 @@ export default function SortableRankItem({
       {/* ジャケット画像（TOP3のみ） */}
       {showCover && coverUrl && (
         <motion.div
+          className="cover-image"
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -155,24 +156,25 @@ export default function SortableRankItem({
 
       {/* 曲名 */}
       <motion.div
-        className="flex-1 min-w-0 cursor-pointer"
+        className="song-title flex-1 min-w-0 cursor-pointer"
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
         }}
         whileHover={{ x: 3 }}
         whileTap={{ scale: 0.98 }}
+        style={{ overflow: "hidden" }}
       >
         {item.song ? (
           <motion.div
-            className="truncate"
+            style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <span className="text-gray-700 font-medium">{item.song.title}</span>
+            <span style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>{item.song.title}</span>
             <motion.span
-              className="text-pink-300 text-xs ml-2"
+              style={{ fontSize: "0.65rem", color: "#f9a8d4", marginLeft: "4px" }}
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -183,7 +185,7 @@ export default function SortableRankItem({
           </motion.div>
         ) : (
           <motion.span
-            className="text-pink-300 italic text-sm"
+            style={{ fontSize: "0.75rem", color: "#f9a8d4", fontStyle: "italic", whiteSpace: "nowrap" }}
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
