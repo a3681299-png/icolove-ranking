@@ -270,6 +270,7 @@ export default function Home() {
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
+        autoScroll={false}
       >
         <SortableContext
           items={ranking.map((item) => item.id)}
