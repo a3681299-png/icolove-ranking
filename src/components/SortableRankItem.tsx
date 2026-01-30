@@ -103,6 +103,7 @@ export default function SortableRankItem({
         minHeight: "48px",
         maxHeight: "48px",
         overflow: "hidden",
+        touchAction: "pan-y",
       }}
     >
       {/* ドラッグハンドル */}

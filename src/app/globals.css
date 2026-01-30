@@ -293,3 +293,19 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+body {
+  touch-action: pan-y;
+}
+
+.rank-item {
+  touch-action: none;
+}
+
+.drag-handle {
+  touch-action: none;
+}
+
+.song-title {
+  touch-action: pan-y;
+}
