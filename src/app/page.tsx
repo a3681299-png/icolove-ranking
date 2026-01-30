@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -46,22 +46,37 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [oshiPhoto, setOshiPhoto] = useState<string | null>(null);
-  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 }); // -50 ~ 50 の範囲
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Ref for immediate drag status check to prevent layout thrashing
+  const isDraggingRef = useRef(false);
+
+  // MotionValues for performant drag updates
+  const dragX = useMotionValue(0);
+  const dragY = useMotionValue(0);
+
+  // -50 ~ 50 range (percentage of mask width)
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 });
+
+  // Preview settings
+
+  // Preview settings
+  const PREVIEW_SIZE = 280;
+  const STAMP_RATIO = 0.32;
+  const IMAGE_SIZE = PREVIEW_SIZE * STAMP_RATIO;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // クライアントサイドでのみマウント
   useEffect(() => {
     setIsMounted(true);
     setCurrentDate(new Date().toLocaleDateString("ja-JP"));
 
-    // モバイル判定
     const checkMobile = () => setIsMobile(window.innerWidth <= 480);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // ローカルストレージから復元
   useEffect(() => {
     if (!isMounted) return;
     const saved = localStorage.getItem("icolove-ranking-data");
@@ -77,17 +92,12 @@ export default function Home() {
     }
   }, [isMounted]);
 
-  // ローカルストレージに保存
   useEffect(() => {
     if (!isMounted) return;
     const data = { title, ranking, oshiPhoto };
     localStorage.setItem("icolove-ranking-data", JSON.stringify(data));
   }, [title, ranking, oshiPhoto, isMounted]);
 
-  // CSSベースの3層構造なのでCanvas合成は不要
-  // oshiPhotoをそのまま使用する
-
-  // 推し写真をアップロード
   const handleOshiPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -100,7 +110,6 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
-  // 推し写真をクリア
   const clearOshiPhoto = () => {
     setOshiPhoto(null);
     if (fileInputRef.current) {
@@ -108,7 +117,6 @@ export default function Home() {
     }
   };
 
-  // ドラッグ&ドロップ用センサー（スマホスクロール対応）
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -117,8 +125,8 @@ export default function Home() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 300, // 長押し300msでドラッグ開始
-        tolerance: 10, // 10px以上動くとキャンセル（スクロール優先）
+        delay: 300,
+        tolerance: 10,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -126,7 +134,6 @@ export default function Home() {
     }),
   );
 
-  // ドラッグ終了時の処理
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -143,13 +150,11 @@ export default function Home() {
     }
   };
 
-  // 曲選択モーダルを開く
   const openSongSearch = (rankId: string) => {
     setSelectedRankId(rankId);
     setSearchModalOpen(true);
   };
 
-  // 曲を選択
   const handleSelectSong = (song: Song) => {
     if (selectedRankId) {
       setRanking((items) =>
@@ -162,7 +167,6 @@ export default function Home() {
     setSelectedRankId(null);
   };
 
-  // 曲をクリア
   const handleClearSong = (rankId: string) => {
     setRanking((items) =>
       items.map((item) =>
@@ -171,7 +175,6 @@ export default function Home() {
     );
   };
 
-  // 画像としてダウンロード（隠しカードを撮影）
   const handleDownload = async () => {
     const element = document.getElementById("ranking-card-hidden");
     if (!element) return;
@@ -196,13 +199,9 @@ export default function Home() {
     }
   };
 
-  // 左列（1-8位）と右列（9-15位）に分割
   const leftColumn = ranking.slice(0, 8);
   const rightColumn = ranking.slice(8, 15);
 
-  // ランキング列のレンダリング
-
-  // ランキング列のレンダリング
   const renderColumn = (items: RankingItem[]) => (
     <div
       style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}
@@ -220,10 +219,8 @@ export default function Home() {
     </div>
   );
 
-  // ランキングリストのレンダリング（モバイル:1列 / デスクトップ:2列）
   const renderRankingList = () => {
     const listContent = isMobile ? (
-      // 1列レイアウト（モバイル通常表示）
       <div
         style={{
           display: "flex",
@@ -245,7 +242,6 @@ export default function Home() {
         </AnimatePresence>
       </div>
     ) : (
-      // 2列レイアウト（デスクトップ）
       <div
         style={{
           display: "grid",
@@ -394,39 +390,80 @@ export default function Home() {
             {oshiPhoto && (
               <div style={{ marginTop: "10px" }}>
                 <div style={{ textAlign: "center", marginBottom: "10px" }}>
-                  {/* 2層構造のプレビュー */}
                   <div
                     style={{
                       position: "relative",
-                      width: "100px",
-                      height: "100px",
+                      width: `${PREVIEW_SIZE}px`,
+                      height: `${PREVIEW_SIZE}px`,
                       margin: "0 auto",
+                      touchAction: "none",
                     }}
                   >
-                    {/* 下層: ユーザーの写真（円形に切り抜き） */}
+                    {/* 下層: ユーザーの写真（マスク） */}
+                    {/* 下層: ユーザーの写真（マスク） */}
                     <div
                       style={{
                         position: "absolute",
-                        top: "50%",
                         left: "50%",
-                        transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
-                        width: "32%",
-                        height: "32%",
+                        top: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: `${IMAGE_SIZE}px`, // STAMP_RATIOに合わせたサイズ
+                        height: `${IMAGE_SIZE}px`,
                         borderRadius: "50%",
-                        overflow: "hidden",
+                        overflow: "hidden", // はみ出し防止
                       }}
                     >
-                      <img
-                        src={oshiPhoto}
-                        alt="推しプレビュー"
+                      <div
                         style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
+                          position: "absolute",
+                          left: "50%",
+                          top: "50%",
+                          transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
+                          width: "150%",
+                          height: "150%",
                         }}
-                      />
+                      >
+                        <motion.img
+                          src={oshiPhoto}
+                          alt="推しプレビュー"
+                          drag
+                          dragMomentum={false}
+                          dragElastic={0}
+                          dragTransition={{ power: 0, timeConstant: 0 }}
+                          onDragStart={() => {
+                            isDraggingRef.current = true;
+                            setIsDragging(true);
+                          }}
+                          onDragEnd={(event, info) => {
+                            isDraggingRef.current = false;
+                            setIsDragging(false);
+
+                            const deltaXPercent =
+                              (info.offset.x / IMAGE_SIZE) * 100;
+                            const deltaYPercent =
+                              (info.offset.y / IMAGE_SIZE) * 100;
+
+                            dragX.jump(0);
+                            dragY.jump(0);
+
+                            setCropOffset((prev) => ({
+                              x: prev.x + deltaXPercent,
+                              y: prev.y + deltaYPercent,
+                            }));
+                          }}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            x: dragX,
+                            y: dragY,
+                            cursor: isDragging ? "grabbing" : "grab",
+                          }}
+                        />
+                      </div>
                     </div>
-                    {/* 上層: シーリングスタンプ（images2.png） */}
+
+                    {/* 上層: シーリングスタンプ */}
                     <img
                       src="/assets/images2.png"
                       alt="シーリングスタンプ"
@@ -437,76 +474,22 @@ export default function Home() {
                         width: "100%",
                         height: "100%",
                         objectFit: "contain",
+                        pointerEvents: "none",
+                        zIndex: 2,
                       }}
                     />
                   </div>
                 </div>
-                {/* クロップ位置調整 */}
+
                 <div
                   style={{
-                    fontSize: "0.75rem",
+                    textAlign: "center",
+                    fontSize: "0.8rem",
                     color: "#d8a0b0",
-                    marginBottom: "6px",
+                    marginBottom: "10px",
                   }}
                 >
-                  📍 切り抜き位置調整
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    alignItems: "center",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#d8a0b0",
-                      minWidth: "30px",
-                    }}
-                  >
-                    左右
-                  </span>
-                  <input
-                    type="range"
-                    min="-50"
-                    max="50"
-                    value={cropOffset.x}
-                    onChange={(e) =>
-                      setCropOffset((prev) => ({
-                        ...prev,
-                        x: Number(e.target.value),
-                      }))
-                    }
-                    style={{ flex: 1, accentColor: "#ff69b4" }}
-                  />
-                </div>
-                <div
-                  style={{ display: "flex", gap: "10px", alignItems: "center" }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: "#d8a0b0",
-                      minWidth: "30px",
-                    }}
-                  >
-                    上下
-                  </span>
-                  <input
-                    type="range"
-                    min="-50"
-                    max="50"
-                    value={cropOffset.y}
-                    onChange={(e) =>
-                      setCropOffset((prev) => ({
-                        ...prev,
-                        y: Number(e.target.value),
-                      }))
-                    }
-                    style={{ flex: 1, accentColor: "#ff69b4" }}
-                  />
+                  写真をドラッグして位置を調整できます 👆
                 </div>
                 <button
                   onClick={() => setCropOffset({ x: 0, y: 0 })}
@@ -572,13 +555,13 @@ export default function Home() {
                 filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35))",
               }}
             >
-              {/* 下層: ユーザーの写真（円形に切り抜き） */}
+              {/* 下層: ユーザーの写真 */}
               <div
                 style={{
                   position: "absolute",
                   top: "50%",
                   left: "50%",
-                  transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
+                  transform: "translate(-50%, -50%)",
                   width: "40%",
                   height: "40%",
                   borderRadius: "50%",
@@ -589,13 +572,17 @@ export default function Home() {
                   src={oshiPhoto}
                   alt="推し写真"
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: "150%",
+                    height: "150%",
                     objectFit: "cover",
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    transform: `translate(calc(-50% + ${cropOffset.x / 1.5}%), calc(-50% + ${cropOffset.y / 1.5}%))`,
                   }}
                 />
               </div>
-              {/* 上層: シーリングスタンプ（images2.png） */}
+              {/* 上層: シーリングスタンプ */}
               <img
                 src="/assets/images2.png"
                 alt="シーリングスタンプ"
@@ -606,6 +593,8 @@ export default function Home() {
                   width: "100%",
                   height: "100%",
                   objectFit: "contain",
+                  pointerEvents: "none",
+                  zIndex: 2,
                 }}
               />
             </motion.div>
@@ -738,14 +727,14 @@ export default function Home() {
                 filter: "drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35))",
               }}
             >
-              {/* 下層: ユーザーの写真（円形に切り抜き） */}
+              {/* 下層: ユーザーの写真 */}
               <div
                 style={{
                   position: "absolute",
                   top: "50%",
                   left: "50%",
-                  transform: `translate(calc(-50% + ${cropOffset.x}%), calc(-50% + ${cropOffset.y}%))`,
-                  width: "32%",
+                  transform: "translate(-50%, -50%)",
+                  width: "32%", // プレビュー STAMP_RATIO 0.32 と合わせる
                   height: "32%",
                   borderRadius: "50%",
                   overflow: "hidden",
@@ -755,13 +744,17 @@ export default function Home() {
                   src={oshiPhoto}
                   alt="推し写真"
                   style={{
-                    width: "100%",
-                    height: "100%",
+                    width: "150%",
+                    height: "150%",
                     objectFit: "cover",
+                    position: "absolute",
+                    left: "50%",
+                    top: "50%",
+                    transform: `translate(calc(-50% + ${cropOffset.x / 1.5}%), calc(-50% + ${cropOffset.y / 1.5}%))`,
                   }}
                 />
               </div>
-              {/* 上層: シーリングスタンプ（images2.png） */}
+              {/* 上層: シーリングスタンプ */}
               <img
                 src="/assets/images2.png"
                 alt="シーリングスタンプ"
