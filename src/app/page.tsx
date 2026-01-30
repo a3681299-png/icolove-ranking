@@ -201,6 +201,8 @@ export default function Home() {
   const rightColumn = ranking.slice(8, 15);
 
   // ランキング列のレンダリング
+
+  // ランキング列のレンダリング
   const renderColumn = (items: RankingItem[]) => (
     <div
       style={{ display: "flex", flexDirection: "column", gap: "6px", flex: 1 }}
@@ -251,6 +253,7 @@ export default function Home() {
           gap: "8px",
           position: "relative",
           zIndex: 10,
+          alignItems: "start",
         }}
       >
         {renderColumn(leftColumn)}

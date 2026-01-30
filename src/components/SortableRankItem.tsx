@@ -3,8 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { Song, getCoverUrl } from "@/data/songs";
-import Image from "next/image";
+import { Song } from "@/data/songs";
 
 interface RankingItem {
   id: string;
@@ -77,14 +76,10 @@ export default function SortableRankItem({
     return "";
   };
 
-  // TOP3かつ曲が選択されている場合のみジャケット表示
-  const showCover = item.rank <= 3 && item.song;
-  const coverUrl = item.song ? getCoverUrl(item.song) : undefined;
 
   return (
     <motion.div
       ref={setNodeRef}
-      style={style}
       initial={{ opacity: 0, x: -30, scale: 0.8 }}
       animate={{
         opacity: isDragging ? 0.9 : 1,
@@ -102,18 +97,41 @@ export default function SortableRankItem({
         opacity: { duration: 0.2 },
       }}
       className={`rank-item ${getRankClass(item.rank)} ${isDragging ? "dragging" : ""}`}
-      {...attributes}
-      {...listeners}
+      style={{
+        ...style,
+        height: "48px",
+        minHeight: "48px",
+        maxHeight: "48px",
+        overflow: "hidden",
+      }}
     >
+      {/* ドラッグハンドル */}
+      <div className="drag-handle flex-shrink-0" {...attributes} {...listeners}>
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </div>
+
       {/* 順位 - ぷるぷるアニメーション */}
       <motion.div
-        className="rank-number"
+        className="rank-number flex-shrink-0"
         animate={
           item.rank <= 3
             ? {
-                scale: [1, 1.1, 1],
-                rotate: [0, -5, 5, 0],
-              }
+              scale: [1, 1.1, 1],
+              rotate: [0, -5, 5, 0],
+            }
             : {}
         }
         transition={{
@@ -126,55 +144,28 @@ export default function SortableRankItem({
         {getRankDisplay(item.rank)}
       </motion.div>
 
-      {/* ジャケット画像（TOP3のみ） */}
-      {showCover && coverUrl && (
-        <motion.div
-          className="cover-image"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 6,
-            overflow: "hidden",
-            flexShrink: 0,
-            boxShadow: "0 2px 8px rgba(255, 105, 180, 0.3)",
-            border: "2px solid rgba(255, 182, 193, 0.5)",
-          }}
-        >
-          <Image
-            src={coverUrl}
-            alt={item.song?.singleTitle || "ジャケット"}
-            width={40}
-            height={40}
-            style={{ objectFit: "cover", width: "100%", height: "100%" }}
-            unoptimized
-          />
-        </motion.div>
-      )}
 
       {/* 曲名 */}
       <motion.div
-        className="song-title flex-1 min-w-0 cursor-pointer"
+        className="song-title flex-1 min-w-0"
+        style={{ display: "flex", alignItems: "center", minWidth: 0, flex: "1 1 auto", overflow: "hidden", whiteSpace: "nowrap"}}
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
         }}
         whileHover={{ x: 3 }}
         whileTap={{ scale: 0.98 }}
-        style={{ overflow: "hidden" }}
       >
         {item.song ? (
-          <motion.div
-            style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <span style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500 }}>{item.song.title}</span>
+          <div className="flex-1 min-w-0 flex items-center overflow-hidden">
+            <span
+              className="truncate"
+              style={{ fontSize: "0.85rem", color: "#374151", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            >
+              {item.song.title}
+            </span>
             <motion.span
-              style={{ fontSize: "0.65rem", color: "#f9a8d4", marginLeft: "4px" }}
+              style={{ fontSize: "0.65rem", color: "#f9a8d4", marginLeft: "4px", flexShrink: 0 }}
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -182,10 +173,10 @@ export default function SortableRankItem({
                 ? "Album"
                 : `${item.song.singleNumber}th`}
             </motion.span>
-          </motion.div>
+          </div>
         ) : (
           <motion.span
-            style={{ fontSize: "0.75rem", color: "#f9a8d4", fontStyle: "italic", whiteSpace: "nowrap" }}
+            style={{ fontSize: "0.75rem", color: "#f9a8d4", fontStyle: "italic", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
             animate={{ opacity: [0.4, 0.8, 0.4] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
@@ -201,7 +192,7 @@ export default function SortableRankItem({
             e.stopPropagation();
             onClear();
           }}
-          className="text-pink-300 hover:text-pink-500 transition-colors p-1"
+          className="text-pink-300 hover:text-pink-500 transition-colors p-1 flex-shrink-0"
           aria-label="クリア"
           whileHover={{
             scale: 1.3,
