@@ -222,34 +222,44 @@ export default function Home() {
 
       const file = new File([blob], "ranking.png", { type: "image/png" });
 
-      // Web Share APIは「アプリ選択」の手間があるため、
-      // 全デバイスで「クリップボードコピー → X起動」のフローに統一する
+      // モバイルの場合はWeb Share APIを使用（画像添付がスムーズ）
+      // ※ アプリの表示順はOS依存のため制御不可だが、ユーザーがよく使うアプリは上位に来やすい
+      if (
+        isMobile &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          files: [file],
+          title: title,
+          text: shareText,
+        });
+      } else {
+        // PCなど: クリップボードに画像をコピーしてXを開く
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ]);
+          setToastMessage(
+            "画像をクリップボードにコピーしました！貼り付けてください 📋",
+          );
+          // 3秒後にToastを消す
+          setTimeout(() => setToastMessage(null), 3000);
+        } catch (e) {
+          console.warn("Clipboard write failed", e);
+        }
 
-      // クリップボードに画像をコピーする試み
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            [blob.type]: blob,
-          }),
-        ]);
-        setToastMessage(
-          "画像をクリップボードにコピーしました！貼り付けてください 📋",
-        );
-        // 3秒後にToastを消す
-        setTimeout(() => setToastMessage(null), 3000);
-      } catch (e) {
-        console.warn("Clipboard write failed", e);
-        // クリップボード書き込み失敗時もXは開く（テキストのみになるが、動線は確保）
+        // テキストのみで拡散用URLを開く
+        const encodedText = encodeURIComponent(shareText);
+        const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+
+        // 少し遅延させてウィンドウを開く（Toastを見せるため）
+        setTimeout(() => {
+          window.open(shareUrl, "_blank", "width=600,height=400");
+        }, 800);
       }
-
-      // テキストのみで拡散用URLを開く
-      const encodedText = encodeURIComponent(shareText);
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-
-      // 少し遅延させてウィンドウを開く（Toastを見せるため）
-      setTimeout(() => {
-        window.open(shareUrl, "_blank", "width=600,height=400");
-      }, 800);
     } catch (error) {
       console.error("シェアエラー:", error);
       // キャンセルされた場合はアラートを出さない
