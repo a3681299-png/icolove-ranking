@@ -23,6 +23,7 @@ import SortableRankItem from "@/components/SortableRankItem";
 import SongSearchModal from "@/components/SongSearchModal";
 import Decorations from "@/components/Decorations";
 import XShareButton from "@/components/XShareButton";
+import Toast from "@/components/Toast";
 import { Song } from "@/data/songs";
 
 interface RankingItem {
@@ -48,6 +49,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [oshiPhoto, setOshiPhoto] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Ref for immediate drag status check to prevent layout thrashing
   const isDraggingRef = useRef(false);
@@ -205,7 +207,7 @@ export default function Home() {
     if (!element) return;
 
     // 現在のランキングテキストを取得
-    const shareText = `🎵 ${title}\n\n${getRankingText()}\n\n#イコラブ #イコラブ楽曲ランキング`;
+    const shareText = `#イコラブ #イコラブ楽曲ランキング`;
 
     try {
       // 1. 画像生成
@@ -221,7 +223,12 @@ export default function Home() {
       const file = new File([blob], "ranking.png", { type: "image/png" });
 
       // 2. Web Share APIでのシェア（画像添付）
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      // PCではOSの共有ダイアログが出てしまうのを防ぐため、モバイルのみ有効にする
+      if (
+        isMobile &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
         await navigator.share({
           files: [file],
           title: title,
@@ -236,9 +243,11 @@ export default function Home() {
               [blob.type]: blob,
             }),
           ]);
-          alert(
-            "画像がクリップボードにコピーされました！\nX（Twitter）のエディタに貼り付けてください 📋",
+          setToastMessage(
+            "画像をクリップボードにコピーしました！貼り付けてください 📋",
           );
+          // 3秒後にToastを消す
+          setTimeout(() => setToastMessage(null), 3000);
         } catch (e) {
           console.warn("Clipboard write failed", e);
         }
@@ -246,7 +255,11 @@ export default function Home() {
         // テキストのみで拡散用URLを開く
         const encodedText = encodeURIComponent(shareText);
         const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-        window.open(shareUrl, "_blank", "width=600,height=400");
+
+        // 少し遅延させてウィンドウを開く（Toastを見せるため）
+        setTimeout(() => {
+          window.open(shareUrl, "_blank", "width=600,height=400");
+        }, 800);
       }
     } catch (error) {
       console.error("シェアエラー:", error);
@@ -784,6 +797,9 @@ export default function Home() {
         onClose={() => setSearchModalOpen(false)}
         onSelect={handleSelectSong}
       />
+
+      {/* Toast通知 */}
+      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
 
       {/* 画像保存用の隠しカード（画面外に配置、固定幅700pxで2列レイアウト） */}
       <div
