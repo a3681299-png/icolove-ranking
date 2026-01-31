@@ -18,10 +18,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { toPng } from "html-to-image";
+import { toPng, toBlob } from "html-to-image";
 import SortableRankItem from "@/components/SortableRankItem";
 import SongSearchModal from "@/components/SongSearchModal";
 import Decorations from "@/components/Decorations";
+import XShareButton from "@/components/XShareButton";
 import { Song } from "@/data/songs";
 
 interface RankingItem {
@@ -197,6 +198,73 @@ export default function Home() {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const handleConnectShare = async () => {
+    const element = document.getElementById("ranking-card-hidden");
+    if (!element) return;
+
+    // 現在のランキングテキストを取得
+    const shareText = `🎵 ${title}\n\n${getRankingText()}\n\n#イコラブ #イコラブ楽曲ランキング`;
+
+    try {
+      // 1. 画像生成
+      const blob = await toBlob(element, {
+        pixelRatio: 2,
+        backgroundColor: "#fff5f8",
+      });
+
+      if (!blob) {
+        throw new Error("画像の生成に失敗しました");
+      }
+
+      const file = new File([blob], "ranking.png", { type: "image/png" });
+
+      // 2. Web Share APIでのシェア（画像添付）
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: title,
+          text: shareText,
+        });
+      } else {
+        // フォールバック: テキストのみの一般的なシェア（PCなど）
+        // クリップボードに画像をコピーする試み（オプション）
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              [blob.type]: blob,
+            }),
+          ]);
+          alert(
+            "画像がクリップボードにコピーされました！\nX（Twitter）のエディタに貼り付けてください 📋",
+          );
+        } catch (e) {
+          console.warn("Clipboard write failed", e);
+        }
+
+        // テキストのみで拡散用URLを開く
+        const encodedText = encodeURIComponent(shareText);
+        const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+        window.open(shareUrl, "_blank", "width=600,height=400");
+      }
+    } catch (error) {
+      console.error("シェアエラー:", error);
+      // キャンセルされた場合はアラートを出さない
+      if ((error as Error).name !== "AbortError") {
+        alert("シェアに失敗しました。もう一度お試しください。");
+      }
+    }
+  };
+
+  // ランキングデータをテキスト形式に変換
+  const getRankingText = () => {
+    const filledRanks = ranking.filter((item) => item.song !== null);
+    if (filledRanks.length === 0) return "まだ曲が選択されていません";
+
+    return filledRanks
+      .map((item) => `${item.rank}位: ${item.song?.title}`)
+      .join("\n");
   };
 
   const leftColumn = ranking.slice(0, 8);
@@ -525,6 +593,33 @@ export default function Home() {
           >
             {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存 ✨</>}
           </motion.button>
+
+          {/* Xシェアボタン */}
+          <div style={{ marginTop: "12px" }}>
+            <XShareButton
+              title={title}
+              rankingText={getRankingText()}
+              onShare={handleConnectShare}
+            />
+          </div>
+
+          {/* Googleフォームリンク */}
+          <div style={{ marginTop: "16px", textAlign: "center" }}>
+            <a
+              href="https://forms.gle/3EYKPMuqywMQWASVA"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: "0.85rem",
+                color: "#ff69b4",
+                textDecoration: "underline",
+                cursor: "pointer",
+                opacity: 0.8,
+              }}
+            >
+              📝 ご意見・ご要望はこちら
+            </a>
+          </div>
         </motion.div>
 
         {/* ランキングカード */}
