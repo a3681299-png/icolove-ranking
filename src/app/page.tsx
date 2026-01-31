@@ -222,45 +222,34 @@ export default function Home() {
 
       const file = new File([blob], "ranking.png", { type: "image/png" });
 
-      // 2. Web Share APIでのシェア（画像添付）
-      // PCではOSの共有ダイアログが出てしまうのを防ぐため、モバイルのみ有効にする
-      if (
-        isMobile &&
-        navigator.canShare &&
-        navigator.canShare({ files: [file] })
-      ) {
-        await navigator.share({
-          files: [file],
-          title: title,
-          text: shareText,
-        });
-      } else {
-        // フォールバック: テキストのみの一般的なシェア（PCなど）
-        // クリップボードに画像をコピーする試み（オプション）
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              [blob.type]: blob,
-            }),
-          ]);
-          setToastMessage(
-            "画像をクリップボードにコピーしました！貼り付けてください 📋",
-          );
-          // 3秒後にToastを消す
-          setTimeout(() => setToastMessage(null), 3000);
-        } catch (e) {
-          console.warn("Clipboard write failed", e);
-        }
+      // Web Share APIは「アプリ選択」の手間があるため、
+      // 全デバイスで「クリップボードコピー → X起動」のフローに統一する
 
-        // テキストのみで拡散用URLを開く
-        const encodedText = encodeURIComponent(shareText);
-        const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-
-        // 少し遅延させてウィンドウを開く（Toastを見せるため）
-        setTimeout(() => {
-          window.open(shareUrl, "_blank", "width=600,height=400");
-        }, 800);
+      // クリップボードに画像をコピーする試み
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob,
+          }),
+        ]);
+        setToastMessage(
+          "画像をクリップボードにコピーしました！貼り付けてください 📋",
+        );
+        // 3秒後にToastを消す
+        setTimeout(() => setToastMessage(null), 3000);
+      } catch (e) {
+        console.warn("Clipboard write failed", e);
+        // クリップボード書き込み失敗時もXは開く（テキストのみになるが、動線は確保）
       }
+
+      // テキストのみで拡散用URLを開く
+      const encodedText = encodeURIComponent(shareText);
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+
+      // 少し遅延させてウィンドウを開く（Toastを見せるため）
+      setTimeout(() => {
+        window.open(shareUrl, "_blank", "width=600,height=400");
+      }, 800);
     } catch (error) {
       console.error("シェアエラー:", error);
       // キャンセルされた場合はアラートを出さない
