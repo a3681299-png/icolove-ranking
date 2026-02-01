@@ -1,5 +1,6 @@
 import { kv } from "@vercel/kv";
 import { Metadata } from "next";
+import Link from "next/link";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -63,7 +64,7 @@ export default async function SharePage({ params }: Props) {
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
         }}
       />
-      <a
+      <Link
         href="/"
         style={{
           padding: "14px 28px",
@@ -76,7 +77,7 @@ export default async function SharePage({ params }: Props) {
         }}
       >
         自分もランキングを作る ♡
-      </a>
+      </Link>
     </div>
   );
 }

@@ -31,9 +31,9 @@ export default function SongSearchModal({
     if (query.trim()) {
       setResults(searchSongs(query));
     } else {
-      // クエリが空の場合は最新曲を表示
       setResults(songs.slice(-10).reverse());
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [query]);
 
   // モーダルを閉じる時にリセット
