@@ -7,12 +7,14 @@ interface XShareButtonProps {
   title?: string;
   rankingText?: string;
   onShare?: () => Promise<void>;
+  isGeneratingImage?: boolean;
 }
 
 export default function XShareButton({
   title = "私的イコラブ楽曲ランキング",
   rankingText = "",
   onShare,
+  isGeneratingImage = false,
 }: XShareButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
 
@@ -27,7 +29,15 @@ export default function XShareButton({
         const shareText = `🎵 ${title}\n\n${rankingText}\n\n#イコラブ #イコラブ楽曲ランキング`;
         const encodedText = encodeURIComponent(shareText);
         const shareUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
-        window.open(shareUrl, "_blank", "width=600,height=400");
+        
+        // X公式と同じ: 中央に配置されたポップアップ
+        const width = 550;
+        const height = 420;
+        const left = (window.screen.width - width) / 2;
+        const top = (window.screen.height - height) / 2;
+        const features = `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0`;
+        
+        window.open(shareUrl, "_blank", features);
       }
     } catch (error) {
       console.error("シェアエラー:", error);
@@ -76,7 +86,7 @@ export default function XShareButton({
           fill="currentColor"
         />
       </svg>
-      {isSharing ? "準備中..." : "Xにシェア"}
+      {isGeneratingImage ? "画像生成中..." : isSharing ? "準備中..." : "Xにシェア"}
     </motion.button>
   );
 }

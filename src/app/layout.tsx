@@ -12,6 +12,7 @@ const zenMaruGothic = Zen_Maru_Gothic({
 
 // メタデータの設定
 export const metadata: Metadata = {
+  metadataBase: new URL("https://icolove-ranking.vercel.app"),
   title: "=LOVE 楽曲ランキング",
   description: "あなただけのイコラブ楽曲ランキングを作成しよう！",
   openGraph: {
