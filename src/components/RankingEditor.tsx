@@ -589,47 +589,106 @@ export default function RankingEditor({
             )}
           </div>
 
-          <motion.button
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="btn-primary"
-            style={{ width: "100%", justifyContent: "center" }}
-            whileHover={{
-              scale: 1.03,
-              boxShadow: "0 8px 25px rgba(255, 105, 180, 0.5)",
-            }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 400, damping: 15 }}
-          >
-            {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存 ✨</>}
-          </motion.button>
-
-          {/* Xシェアボタン */}
-          <div style={{ marginTop: "12px" }}>
-            <XShareButton
-              title={title}
-              rankingText={getRankingText()}
-              onShare={handleConnectShare}
-              isGeneratingImage={isDownloading}
-            />
-            {shareId && (
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontSize: "0.75rem",
-                  color: "#4ade80",
-                  textAlign: "center",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "4px",
-                }}
-              >
-                <span>✓</span>
-                <span>画像アップロード済み - Xにシェアできます</span>
-              </div>
-            )}
+          {/* ステップ1: 画像保存 */}
+          <div style={{ marginBottom: "16px" }}>
+            <div
+              style={{
+                fontSize: "0.8rem",
+                color: "#ff69b4",
+                marginBottom: "8px",
+                textAlign: "center",
+                fontWeight: "bold",
+              }}
+            >
+              STEP 1 👇 画像を保存する
+            </div>
+            <motion.button
+              onClick={handleDownload}
+              disabled={isDownloading}
+              className="btn-primary"
+              style={{ width: "100%", justifyContent: "center" }}
+              whileHover={{
+                scale: 1.03,
+                boxShadow: "0 8px 25px rgba(255, 105, 180, 0.5)",
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            >
+              {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存 ✨</>}
+            </motion.button>
           </div>
+
+          {/* ステップ2: Xシェア（画像保存後に表示） */}
+          <AnimatePresence>
+            {shareId && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+                style={{ marginTop: "8px" }}
+              >
+                <div
+                  style={{
+                    fontSize: "0.8rem",
+                    color: "#4ade80",
+                    marginBottom: "8px",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}
+                >
+                  STEP 2 👇 Xにシェアする
+                </div>
+                <XShareButton
+                  title={title}
+                  rankingText={getRankingText()}
+                  onShare={handleConnectShare}
+                  isGeneratingImage={isDownloading}
+                />
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "0.75rem",
+                    color: "#4ade80",
+                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                  }}
+                >
+                  <span>✓</span>
+                  <span>画像アップロード済み - Xにシェアできます</span>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!shareId && !isDownloading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              style={{
+                marginTop: "12px",
+                padding: "12px",
+                background: "rgba(255, 182, 193, 0.1)",
+                borderRadius: "8px",
+                border: "1px dashed #ffb6c1",
+                textAlign: "center",
+                fontSize: "0.8rem",
+                color: "#d8a0b0",
+              }}
+            >
+              💡 画像を保存すると、Xシェアボタンが表示されます
+            </motion.div>
+          )}
 
           {/* Googleフォームリンク */}
           <div style={{ marginTop: "16px", textAlign: "center" }}>
