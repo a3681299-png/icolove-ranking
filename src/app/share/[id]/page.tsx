@@ -1,6 +1,5 @@
 import { kv } from "@vercel/kv";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -34,10 +33,15 @@ export default async function SharePage({ params }: Props) {
   const { id } = await params;
   const imageUrl = await kv.get<string>(`share:${id}`);
 
-  if (!imageUrl) {
-    redirect("/");
-  }
-
-  // メインページにリダイレクト
-  redirect("/");
+  // クライアントサイドでリダイレクト（OGPクローラーは↓のHTMLを見る）
+  return (
+    <html>
+      <head>
+        <meta httpEquiv="refresh" content="0;url=/" />
+      </head>
+      <body>
+        <p>リダイレクト中...</p>
+      </body>
+    </html>
+  );
 }
