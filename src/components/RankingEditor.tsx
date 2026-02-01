@@ -69,6 +69,7 @@ export default function RankingEditor({
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [selectedRankId, setSelectedRankId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [shareId, setShareId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [currentDate, setCurrentDate] = useState("");
   const [isMobile, setIsMobile] = useState(false);
@@ -219,13 +220,35 @@ export default function RankingEditor({
         backgroundColor: "#fff5f8",
       });
 
+      // ローカル保存
       const link = document.createElement("a");
       link.download = `イコラブランキング_${new Date().toISOString().slice(0, 10)}.png`;
       link.href = dataUrl;
       link.click();
+
+      // Cloudinaryにアップロード
+      const blob = await (await fetch(dataUrl)).blob();
+      const formData = new FormData();
+      formData.append("file", blob);
+      formData.append("upload_preset", "icolove_ranking");
+
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dymm2ni68/image/upload",
+        { method: "POST", body: formData },
+      );
+      const data = await res.json();
+
+      // シェアID生成
+      const shareRes = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: data.secure_url }),
+      });
+      const shareData = await shareRes.json();
+      console.log("shareId:", shareData.id);
+      setShareId(shareData.id);
     } catch (error) {
-      console.error("画像生成エラー:", error);
-      alert("画像の生成に失敗しました");
+      console.error("エラー:", error);
     } finally {
       setIsDownloading(false);
     }
@@ -242,31 +265,16 @@ export default function RankingEditor({
   };
 
   const handleConnectShare = async () => {
-    // シェア用URLを構築
-    // 形式: https://[host]/?t=[Title]&ids=[id1],[id2]...
-    const currentUrl = new URL(window.location.href);
-    const baseUrl = `${currentUrl.protocol}//${currentUrl.host}`;
+    const baseUrl = "https://icolove-ranking.vercel.app";
+    const shareUrl = shareId ? `${baseUrl}/share/${shareId}` : baseUrl;
 
-    // 曲IDのリストを作成
-    const songIds = ranking.map((item) => item.song?.id || "").join(",");
-
-    // クエリパラメータを作成
-    const params = new URLSearchParams();
-    if (title) params.set("t", title);
-    if (songIds.replace(/,/g, "")) params.set("ids", songIds); // 空でなければセット
-
-    const shareLink = `${baseUrl}/?${params.toString()}`;
-
-    // ハッシュタグ
-    const hashtags = "イコラブ,イコラブ楽曲ランキング";
-    const shareText = ``; // テキストは空（あるいはタイトル）
-
-    // X Intent URL
-    const twitterIntentUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}&hashtags=${encodeURIComponent(hashtags)}`;
-
-    // PC/Mobile共通でシンプルにIntentを開くことにする
-    // OGP画像が表示されるので画像添付は不要
-    window.open(twitterIntentUrl, "_blank", "width=600,height=400");
+    const text = encodeURIComponent(
+      "イコラブ楽曲ランキング作ったよ！\n#イコラブランキング",
+    );
+    window.open(
+      `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+    );
   };
 
   const leftColumn = ranking.slice(0, 8);
@@ -602,7 +610,25 @@ export default function RankingEditor({
               title={title}
               rankingText={getRankingText()}
               onShare={handleConnectShare}
+              isGeneratingImage={isDownloading}
             />
+            {shareId && (
+              <div
+                style={{
+                  marginTop: "8px",
+                  fontSize: "0.75rem",
+                  color: "#4ade80",
+                  textAlign: "center",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "4px",
+                }}
+              >
+                <span>✓</span>
+                <span>画像アップロード済み - Xにシェアできます</span>
+              </div>
+            )}
           </div>
 
           {/* Googleフォームリンク */}
