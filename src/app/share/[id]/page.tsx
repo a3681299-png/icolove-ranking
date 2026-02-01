@@ -48,13 +48,14 @@ export default async function SharePage({ params }: Props) {
   const { id } = await params;
   const imageUrl = await kv.get<string>(`share:${id}`);
 
-  // クライアントサイドでリダイレクト（OGPクローラーは↓のHTMLを見る）
   return (
     <html>
-      <head>
-        <meta httpEquiv="refresh" content="0;url=/" />
-      </head>
       <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.location.replace("/");`,
+          }}
+        />
         <p>リダイレクト中...</p>
       </body>
     </html>
