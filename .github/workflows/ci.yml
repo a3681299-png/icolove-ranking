@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "devlop"
+  pull_request:
+    branches:
+      - "**" # すべてのブランチへのPRを対象にする
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Next.js 15に合わせてLTSの20を指定
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and Type Check
+        run: |
+          npm run lint
+          npx tsc --noEmit
+
+      - name: Build
+        # Next.jsのビルド時に環境変数が必要な場合（SSGなどでKVを参照する場合）に備える
+        env:
+          KV_URL: ${{ secrets.KV_URL }}
+          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL }}
+          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
+          KV_REST_API_READ_ONLY_TOKEN: ${{ secrets.KV_REST_API_READ_ONLY_TOKEN }}
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+        run: npm run build
