@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Song, searchSongs, songs } from "@/data/songs";
 
@@ -16,8 +16,16 @@ export default function SongSearchModal({
   onSelect,
 }: SongSearchModalProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Song[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // 検索結果を計算
+  const results = useMemo(() => {
+    if (query.trim()) {
+      return searchSongs(query);
+    } else {
+      return songs.slice(-10).reverse();
+    }
+  }, [query]);
 
   // モーダルが開いたらフォーカス
   useEffect(() => {
@@ -25,16 +33,6 @@ export default function SongSearchModal({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
-
-  // 検索
-  useEffect(() => {
-    if (query.trim()) {
-      setResults(searchSongs(query));
-    } else {
-      setResults(songs.slice(-10).reverse());
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-  }, [query]);
 
   // モーダルを閉じる時にリセット
   const handleClose = () => {
