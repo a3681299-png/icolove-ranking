@@ -38,10 +38,19 @@ interface AlbumCoverData {
   artworkUrl100: string;
 }
 
+interface iTunesSearchResult {
+  results: Array<{
+    artistName?: string;
+    collectionName?: string;
+    artworkUrl100?: string;
+    artworkUrl60?: string;
+  }>;
+}
+
 async function searchItunes(
   term: string,
   entity: string = "album",
-): Promise<any> {
+): Promise<iTunesSearchResult> {
   const url = `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&country=JP&media=music&entity=${entity}&limit=5`;
   const response = await fetch(url);
   const data = await response.json();
@@ -62,7 +71,7 @@ async function fetchSingleCovers(): Promise<CoverData[]> {
         // =LOVEの結果を優先
         const match =
           data.results.find(
-            (r: any) =>
+            (r) =>
               r.artistName?.includes("=LOVE") ||
               r.artistName?.includes("イコールラブ") ||
               r.collectionName?.includes(single.title),
@@ -117,7 +126,7 @@ async function fetchAlbumCovers(): Promise<AlbumCoverData[]> {
 
       if (data.results && data.results.length > 0) {
         const match =
-          data.results.find((r: any) =>
+          data.results.find((r) =>
             r.collectionName?.includes(album.title),
           ) || data.results[0];
 

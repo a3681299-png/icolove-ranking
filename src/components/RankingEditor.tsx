@@ -18,7 +18,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { toPng, toBlob } from "html-to-image";
+import { toPng } from "html-to-image";
 import SortableRankItem from "@/components/SortableRankItem";
 import SongSearchModal from "@/components/SongSearchModal";
 import Decorations from "@/components/Decorations";
@@ -251,16 +251,6 @@ export default function RankingEditor({
     } finally {
       setIsDownloading(false);
     }
-  };
-
-  // ランキングデータをテキスト形式に変換
-  const getRankingText = () => {
-    const filledRanks = ranking.filter((item) => item.song !== null);
-    if (filledRanks.length === 0) return "まだ曲が選択されていません";
-
-    return filledRanks
-      .map((item) => `${item.rank}位: ${item.song?.title}`)
-      .join("\n");
   };
 
   const handleConnectShare = async () => {
