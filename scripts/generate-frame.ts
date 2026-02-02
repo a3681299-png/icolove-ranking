@@ -40,16 +40,13 @@ async function generateFrame() {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
-      const r = pixels[idx];
-      const g = pixels[idx + 1];
-      const b = pixels[idx + 2];
       const a = pixels[idx + 3];
-      
+
       // 中央からの距離を計算
       const dx = x - centerX;
       const dy = y - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
+
       if (distance < circleRadius) {
         // 中央の円形エリアは完全に透明
         pixels[idx + 3] = 0;
