@@ -585,6 +585,40 @@ export const songs: Song[] = [
     releaseDate: "2025-10-08",
   },
 
+  // 配信限定スペシャルソング
+  {
+    id: "digital-1",
+    title: "君だけの花道",
+    singleNumber: 0,
+    singleTitle: "配信限定シングル",
+    type: "coupling",
+    releaseDate: "2023-03-22",
+  },
+  {
+    id: "digital-2",
+    title: "おかえり、花便り",
+    singleNumber: 0,
+    singleTitle: "配信限定シングル",
+    type: "coupling",
+    releaseDate: "2023-03-28",
+  },
+  {
+    id: "digital-3",
+    title: "宝物はグリーン",
+    singleNumber: 0,
+    singleTitle: "配信限定シングル",
+    type: "coupling",
+    releaseDate: "2023-11-29",
+  },
+  {
+    id: "digital-4",
+    title: "内緒バナシ",
+    singleNumber: 0,
+    singleTitle: "配信限定シングル",
+    type: "coupling",
+    releaseDate: "2025-08-22",
+  },
+
   // 1st Album「全部、内緒。」(2021.05.12) - アルバム新曲
   {
     id: "album1-1",

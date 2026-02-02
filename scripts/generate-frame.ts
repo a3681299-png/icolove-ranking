@@ -9,8 +9,8 @@
  * 使用方法: node scripts/generate-frame.js
  */
 
-const sharp = require('sharp');
-const path = require('path');
+import sharp from 'sharp';
+import path from 'path';
 
 async function generateFrame() {
   const inputPath = path.join(__dirname, '../public/assets/images.png');
@@ -40,19 +40,13 @@ async function generateFrame() {
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
-      const r = pixels[idx];
-      const g = pixels[idx + 1];
-      const b = pixels[idx + 2];
       const a = pixels[idx + 3];
-      
+
       // 中央からの距離を計算
       const dx = x - centerX;
       const dy = y - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
-      // 明度を計算（0-255）
-      const brightness = (r + g + b) / 3;
-      
+
       if (distance < circleRadius) {
         // 中央の円形エリアは完全に透明
         pixels[idx + 3] = 0;

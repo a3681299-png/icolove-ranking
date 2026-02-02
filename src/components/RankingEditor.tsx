@@ -18,11 +18,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { toPng, toBlob } from "html-to-image";
+import { toPng } from "html-to-image";
 import SortableRankItem from "@/components/SortableRankItem";
 import SongSearchModal from "@/components/SongSearchModal";
 import Decorations from "@/components/Decorations";
-import XShareButton from "@/components/XShareButton";
 import Toast from "@/components/Toast";
 import { Song, songs } from "@/data/songs";
 
@@ -254,16 +253,6 @@ export default function RankingEditor({
     }
   };
 
-  // ランキングデータをテキスト形式に変換
-  const getRankingText = () => {
-    const filledRanks = ranking.filter((item) => item.song !== null);
-    if (filledRanks.length === 0) return "まだ曲が選択されていません";
-
-    return filledRanks
-      .map((item) => `${item.rank}位: ${item.song?.title}`)
-      .join("\n");
-  };
-
   const handleConnectShare = async () => {
     const baseUrl = "https://icolove-ranking.vercel.app";
     const shareUrl = shareId ? `${baseUrl}/share/${shareId}` : baseUrl;
@@ -377,9 +366,10 @@ export default function RankingEditor({
       >
         {/* 編集パネル */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           style={{
+            opacity: 1,
             background: "rgba(255, 255, 255, 0.9)",
             borderRadius: "20px",
             padding: "20px",
@@ -589,106 +579,109 @@ export default function RankingEditor({
             )}
           </div>
 
-          {/* ステップ1: 画像保存 */}
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{
-                fontSize: "0.8rem",
-                color: "#ff69b4",
-                marginBottom: "8px",
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            >
-              STEP 1 👇 画像を保存する
+          {/* 1. ステップ表示（常に表示） */}
+          <div style={{ marginBottom: "16px", textAlign: "center" }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center",
+              gap: "8px",
+              fontSize: "0.85rem",
+              marginBottom: "12px"
+            }}>
+              <span style={{ 
+                background: shareId ? "#e5e7eb" : "#ff69b4", 
+                color: shareId ? "#9ca3af" : "white",
+                padding: "4px 12px", 
+                borderRadius: "999px",
+                fontWeight: "bold"
+              }}>
+                STEP 1
+              </span>
+              <span style={{ color: shareId ? "#9ca3af" : "#ff69b4", fontWeight: "bold" }}>
+                画像を保存
+              </span>
+              <span style={{ color: "#d1d5db" }}>→</span>
+              <span style={{ 
+                background: shareId ? "#4ade80" : "#e5e7eb", 
+                color: shareId ? "white" : "#9ca3af",
+                padding: "4px 12px", 
+                borderRadius: "999px",
+                fontWeight: "bold"
+              }}>
+                STEP 2
+              </span>
+              <span style={{ color: shareId ? "#16a34a" : "#9ca3af", fontWeight: "bold" }}>
+                Xにシェア
+              </span>
             </div>
-            <motion.button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              className="btn-primary"
-              style={{ width: "100%", justifyContent: "center" }}
-              whileHover={{
-                scale: 1.03,
-                boxShadow: "0 8px 25px rgba(255, 105, 180, 0.5)",
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-            >
-              {isDownloading ? <>⏳ 生成中...</> : <>📥 画像として保存 ✨</>}
-            </motion.button>
           </div>
 
-          {/* ステップ2: Xシェア（画像保存後に表示） */}
-          <AnimatePresence>
-            {shareId && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 20,
-                }}
-                style={{ marginTop: "8px" }}
-              >
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    color: "#4ade80",
-                    marginBottom: "8px",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                  }}
-                >
-                  STEP 2 👇 Xにシェアする
-                </div>
-                <XShareButton
-                  title={title}
-                  rankingText={getRankingText()}
-                  onShare={handleConnectShare}
-                  isGeneratingImage={isDownloading}
-                />
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "0.75rem",
-                    color: "#4ade80",
-                    textAlign: "center",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "4px",
-                  }}
-                >
-                  <span>✓</span>
-                  <span>画像アップロード済み - Xにシェアできます</span>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* 2. 画像保存ボタン（常に表示） */}
+          <motion.button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            style={{ 
+              width: "100%",
+              padding: "16px",
+              borderRadius: "12px",
+              border: "none",
+              background: "linear-gradient(135deg, #ff69b4 0%, #ff1493 100%)",
+              color: "white",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              cursor: isDownloading ? "wait" : "pointer",
+              opacity: isDownloading ? 0.7 : 1
+            }}
+          >
+            {isDownloading ? "⏳ 画像生成中..." : "📥 画像として保存 ✨"}
+          </motion.button>
 
-          {!shareId && !isDownloading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+          {/* 3. Xシェアボタン（常に表示 - disabled状態で） */}
+          <div style={{ marginTop: "12px" }}>
+            <button
+              onClick={handleConnectShare}
+              disabled={!shareId}
               style={{
-                marginTop: "12px",
-                padding: "12px",
-                background: "rgba(255, 182, 193, 0.1)",
-                borderRadius: "8px",
-                border: "1px dashed #ffb6c1",
-                textAlign: "center",
-                fontSize: "0.8rem",
-                color: "#d8a0b0",
+                width: "100%",
+                padding: "16px",
+                borderRadius: "12px",
+                border: "2px solid",
+                borderColor: shareId ? "#000000" : "#e5e7eb",
+                background: shareId ? "#000000" : "#f3f4f6",
+                color: shareId ? "#ffffff" : "#9ca3af",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                cursor: shareId ? "pointer" : "not-allowed",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                transition: "all 0.3s ease"
               }}
+              title={!shareId ? "先に「画像として保存」を押してください" : "Xにシェアする"}
             >
-              💡 画像を保存すると、Xシェアボタンが表示されます
-            </motion.div>
-          )}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+              Xにシェア
+            </button>
+            
+            {/* ヒントテキスト */}
+            <p style={{
+              marginTop: "8px",
+              fontSize: "0.75rem",
+              textAlign: "center",
+              color: shareId ? "#4ade80" : "#9ca3af",
+              minHeight: "20px" // レイアウトシフト防止
+            }}>
+              {shareId 
+                ? "✓ 画像の準備ができました！シェアできます" 
+                : "💡 STEP 1の「画像として保存」を先に押してください"}
+            </p>
+          </div>
 
           {/* Googleフォームリンク */}
           <div style={{ marginTop: "16px", textAlign: "center" }}>
