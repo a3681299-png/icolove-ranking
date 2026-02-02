@@ -182,14 +182,6 @@ export const songs: Song[] = [
     type: "coupling",
     releaseDate: "2019-10-30",
   },
-  {
-    id: "6-4",
-    title: "君の音だったんだ",
-    singleNumber: 6,
-    singleTitle: "ズルいよ ズルいね",
-    type: "coupling",
-    releaseDate: "2019-10-30",
-  },
 
   // 7th Single「CAMEO」(2020.07.08)
   {
