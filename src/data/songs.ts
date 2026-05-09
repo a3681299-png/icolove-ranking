@@ -577,6 +577,32 @@ export const songs: Song[] = [
     releaseDate: "2025-10-08",
   },
 
+  // 20th Single「劇薬中毒」(2026.04.01)
+  {
+    id: "20-1",
+    title: "劇薬中毒",
+    singleNumber: 20,
+    singleTitle: "劇薬中毒",
+    type: "title",
+    releaseDate: "2026-04-01",
+  },
+  {
+    id: "20-2",
+    title: "モラトリアム",
+    singleNumber: 20,
+    singleTitle: "劇薬中毒",
+    type: "coupling",
+    releaseDate: "2026-04-01",
+  },
+  {
+    id: "20-3",
+    title: "お姫様の作り方",
+    singleNumber: 20,
+    singleTitle: "劇薬中毒",
+    type: "coupling",
+    releaseDate: "2026-04-01",
+  },
+
   // 配信限定スペシャルソング
   {
     id: "digital-1",
